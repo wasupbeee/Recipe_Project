@@ -1,91 +1,57 @@
-// useRef - Stores values that persist between re-renders (used for swipe detection)
-import { useRef } from 'react'
-// StyleSheet, View, Pressable - Building blocks for UI (like divs in web)
-// PanResponder - Detects finger swipe gestures
-import { StyleSheet, View, Pressable, PanResponder } from 'react-native'
-// Link - Makes things clickable to navigate
-// usePathname - Gets current page URL (e.g., "/about")
-// useRouter - Lets us navigate to other pages programmatically
-import { Link, usePathname, useRouter } from 'expo-router'
-// Ionicons - A library of icons (home, info, people icons)
+import { useRef } from 'react' // Stores values that persist between re-renders (used for swipe detection)
+import { StyleSheet, View, Pressable, PanResponder } from 'react-native' // Building blocks for UI (like divs in web)
+import { Link, usePathname, useRouter } from 'expo-router' //Navigation tools (like clicking links on a website)
 import { Ionicons } from '@expo/vector-icons'
 
-// List of all pages in order - tells swipe logic which page comes before/after
-const routes = ['/', '/about', '/contacts']
+const routes = ['/', '/about', '/contacts'] // A simple list of all your pages in order. This tells the swipe logic which page comes before/after the current one.
 
 const NavBar = () => {
-    // Gets current page URL (e.g., "/about")
-    const pathname = usePathname()
-    // Lets us navigate to other pages
-    const router = useRouter()
-    // Finds position in routes array (0 = Home, 1 = About, 2 = Contacts)
-    const currentIndex = routes.indexOf(pathname)
+    const pathname = usePathname() // Gets current page URL (e.g., "/about")
+    const router = useRouter() // Navigation tools (like clicking links on a website)
+    const currentIndex = routes.indexOf(pathname) // Finds position in array (0, 1, or 2)
 
-    // PanResponder handles swipe gestures
     const panResponder = useRef(
         PanResponder.create({
-            // Don't capture simple taps
             onStartShouldSetPanResponder: () => false,
-
-            // "Should I track this gesture?"
-            // Only if horizontal movement > 15px and vertical < 30px
-            // This prevents accidental swipes when scrolling
             onMoveShouldSetPanResponder: (_, gestureState) => {
-                // gestureState.dx = horizontal distance moved (positive = right, negative = left)
-                // gestureState.dy = vertical distance moved
                 return Math.abs(gestureState.dx) > 15 && Math.abs(gestureState.dy) < 30
             },
-
-            // When finger lifts off screen
             onPanResponderRelease: (_, gestureState) => {
-                // Minimum distance needed to trigger navigation
                 const swipeThreshold = 50
 
-                // Swipe RIGHT (dx > 50) and not on first page → go to previous page
                 if (gestureState.dx > swipeThreshold && currentIndex > 0) {
-                    router.replace(routes[currentIndex - 1])
-                }
-                // Swipe LEFT (dx < -50) and not on last page → go to next page
-                else if (gestureState.dx < -swipeThreshold && currentIndex < routes.length - 1) {
-                    router.replace(routes[currentIndex + 1])
+                    router.replace(routes[currentIndex - 1]) // Go back one page
+                } else if (gestureState.dx < -swipeThreshold && currentIndex < routes.length - 1) {
+                    router.replace(routes[currentIndex + 1]) // Go forward one page
                 }
             },
         })
     ).current
 
-    // List of nav buttons - each has a link, inactive icon, and active icon
     const navItems = [
-        { href: '/', icon: 'home-outline', activeIcon: 'home' },
-        { href: '/about', icon: 'information-circle-outline', activeIcon: 'information-circle' },
-        { href: '/contacts', icon: 'people-outline', activeIcon: 'people' },
+        { href: '/', icon: 'home-outline', activeIcon: 'home' }, // Home page icon
+        { href: '/about', icon: 'information-circle-outline', activeIcon: 'information-circle' }, // About page icon
+        { href: '/contacts', icon: 'people-outline', activeIcon: 'people' }, // Contacts page icon
     ]
 
     return (
-        // Outer container - positions navbar at bottom of screen
         <View style={styles.container}>
-            {/* Pill-shaped container - also has swipe handlers attached */}
             <View style={styles.pillContainer} {...panResponder.panHandlers}>
-                {/* Loop through each nav item and create a button */}
                 {navItems.map((item) => {
-                    // Check if current page matches this button's link
                     const isActive = pathname === item.href
                     return (
-                        // Link makes the icon tappable and navigates when pressed
-                        // asChild passes the Link's behavior to the Pressable
                         <Link key={item.href} href={item.href} asChild>
-                            {/* Pressable - a touchable button wrapper */}
                             <Pressable
                                 style={({ pressed }) => [
-                                    styles.iconButton,           // Base circular button style
-                                    isActive && styles.activeButton,  // Green background if active
-                                    pressed && styles.pressed,   // Shrink effect when pressed
+                                    styles.iconButton,
+                                    isActive && styles.activeButton,
+                                    pressed && styles.pressed,
                                 ]}
                             >
-                                {/* The actual icon - filled if active, outline if not */}
                                 <Ionicons
                                     name={isActive ? item.activeIcon : item.icon}
                                     size={24}
-                                    color={isActive ? '#fff' : '#888'}  // White if active, gray if not
+                                    color={isActive ? '#fff' : '#888'}
                                 />
                             </Pressable>
                         </Link>
@@ -99,24 +65,21 @@ const NavBar = () => {
 export default NavBar
 
 const styles = StyleSheet.create({
-    // Outer container - floats at bottom of screen
     container: {
-        position: 'absolute',  // Floats over content
-        bottom: 40,            // 40px from bottom of screen
-        left: 0,               // Stretch full width
+        position: 'absolute',
+        bottom: 40,
+        left: 0,
         right: 0,
-        alignItems: 'center',  // Centers the pill horizontally
+        alignItems: 'center',
     },
 
-    // The rounded pill shape containing the icons
     pillContainer: {
-        flexDirection: 'row',       // Icons sit side-by-side
-        backgroundColor: '#f5f5f5', // Light gray background
-        borderRadius: 30,           // Makes it pill-shaped
-        paddingVertical: 10,        // Padding top and bottom
-        paddingHorizontal: 20,      // Padding left and right
-        gap: 20,                    // Space between icons
-        // Shadow properties for depth effect
+        flexDirection: 'row',
+        backgroundColor: '#f5f5f5',
+        borderRadius: 30,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        gap: 20,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -124,26 +87,23 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.1,
         shadowRadius: 8,
-        elevation: 5,  // Android shadow
+        elevation: 5,
     },
 
-    // Each icon button - circular shape
     iconButton: {
-        width: 44,                  // Square button
+        width: 44,
         height: 44,
-        borderRadius: 22,           // Half of width/height = perfect circle
-        justifyContent: 'center',   // Centers icon vertically
-        alignItems: 'center',       // Centers icon horizontally
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 
-    // Green circle for the active/current page
     activeButton: {
-        backgroundColor: '#22c55e', // Green color
+        backgroundColor: '#22c55e',
     },
 
-    // Visual feedback when button is pressed
     pressed: {
-        opacity: 0.7,                      // Fades slightly
-        transform: [{ scale: 0.95 }],      // Shrinks slightly
+        opacity: 0.7,
+        transform: [{ scale: 0.95 }],
     },
 })
