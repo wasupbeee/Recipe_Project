@@ -1,24 +1,19 @@
-import { StyleSheet, Text, View, Image } from 'react-native'
-import Logo from '../assets/LogoVilla.png'
+import { StyleSheet, Text, View } from 'react-native'
 import NavBar from '../components/NavBar'
 
-const HomePage = () => {
+const about = () => {
     return (
         <View style={styles.container}>
-
-            <Image source={Logo} style={{ width: 150, height: 150 }} />
-            <Text style={styles.title}>Demo App</Text>
-            <Text style={styles.subtitle}>In Progress!</Text>
+            <Text style={styles.title}>This is the about page</Text>
 
             <NavBar />
         </View>
     )
 }
 
-export default HomePage
+export default about
 
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
         justifyContent: 'center',
