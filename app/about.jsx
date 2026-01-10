@@ -4,7 +4,7 @@ import NavBar from '../components/NavBar'
 const about = () => {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>This is the about page</Text>
+            <Text style={styles.title}>This is the about page for Casa Rei Villa</Text>
 
             <NavBar />
         </View>
