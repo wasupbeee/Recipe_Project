@@ -4,7 +4,7 @@ import NavBar from '../components/NavBar'
 const about = () => {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>This is the about page for Casa Rei Villa</Text>
+            <Text style={styles.title}>This is the about page for {'\n'} Casa Rei Villa</Text>
 
             <NavBar />
         </View>
@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#000000c5',
+        textAlign: 'center',
     },
 
     subtitle: {

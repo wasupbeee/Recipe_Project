@@ -8,7 +8,7 @@ const HomePage = () => {
 
             <Image source={Logo} style={{ width: 150, height: 150 }} />
             <Text style={styles.title}>Demo App</Text>
-            <Text style={styles.subtitle}>In Progress!</Text>
+            <Text style={styles.subtitle}>In Progress!!</Text>
 
             <NavBar />
         </View>
