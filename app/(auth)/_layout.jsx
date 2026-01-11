@@ -1,10 +1,9 @@
 import { Stack } from 'expo-router'
 import { StyleSheet, View } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
-import NavBar from '../components/NavBar'
-import { ThemeProvider, useTheme } from '../context/ThemeContext'
+import { useTheme } from '../../context/ThemeContext'
 
-const MainLayout = () => {
+const AuthLayout = () => {
     const { isDarkMode, colors } = useTheme()
 
     return (
@@ -18,25 +17,13 @@ const MainLayout = () => {
                     contentStyle: { backgroundColor: colors.background },
                 }}
             >
-                <Stack.Screen name="index" />
-                <Stack.Screen name="about" />
-                <Stack.Screen name="contacts" />
-                <Stack.Screen name="settings" />
+                <Stack.Screen name="login" />
             </Stack>
-            <NavBar />
         </View>
     )
 }
 
-const rootLayout = () => {
-    return (
-        <ThemeProvider>
-            <MainLayout />
-        </ThemeProvider>
-    )
-}
-
-export default rootLayout
+export default AuthLayout
 
 const styles = StyleSheet.create({
     container: {

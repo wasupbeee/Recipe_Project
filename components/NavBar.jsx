@@ -1,17 +1,113 @@
-import { useRef } from 'react' // Stores values that persist between re-renders (used for swipe detection)
-import { StyleSheet, View, Pressable, PanResponder } from 'react-native' // Building blocks for UI (like divs in web)
-import { Link, usePathname, useRouter } from 'expo-router' //Navigation tools (like clicking links on a website)
+import { useRef, useCallback, useEffect } from 'react'
+import { StyleSheet, View, Pressable, PanResponder, Animated } from 'react-native'
+import { Link, usePathname, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
-const routes = ['/', '/about', '/contacts', '/settings'] // A simple list of all your pages in order. This tells the swipe logic which page comes before/after the current one.
+const routes = ['/', '/about', '/contacts', '/settings']
+
+// Animated nav item component with scale and glow effects
+const AnimatedNavItem = ({ item, isActive, isDarkMode }) => {
+    const scaleAnim = useRef(new Animated.Value(isActive ? 1.15 : 1)).current
+    const glowAnim = useRef(new Animated.Value(0.3)).current
+    const glowAnimation = useRef(null)
+
+    useEffect(() => {
+        if (isActive) {
+            // Scale up animation
+            Animated.spring(scaleAnim, {
+                toValue: 1.15,
+                friction: 5,
+                tension: 100,
+                useNativeDriver: false,
+            }).start()
+
+            // Start glow pulse animation
+            glowAnimation.current = Animated.loop(
+                Animated.sequence([
+                    Animated.timing(glowAnim, {
+                        toValue: 0.9,
+                        duration: 800,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(glowAnim, {
+                        toValue: 0.3,
+                        duration: 800,
+                        useNativeDriver: false,
+                    }),
+                ])
+            )
+            glowAnimation.current.start()
+        } else {
+            // Scale down animation
+            Animated.spring(scaleAnim, {
+                toValue: 1,
+                friction: 5,
+                tension: 100,
+                useNativeDriver: false,
+            }).start()
+
+            // Stop glow animation
+            if (glowAnimation.current) {
+                glowAnimation.current.stop()
+                glowAnim.setValue(0.3)
+            }
+        }
+
+        return () => {
+            if (glowAnimation.current) {
+                glowAnimation.current.stop()
+            }
+        }
+    }, [isActive])
+
+    return (
+        <Link href={item.href} asChild>
+            <Pressable>
+                <Animated.View
+                    style={[
+                        styles.iconButton,
+                        isActive && styles.activeButton,
+                        {
+                            transform: [{ scale: scaleAnim }],
+                        },
+                        isActive && {
+                            shadowColor: '#5D3A1A',
+                            shadowOffset: { width: 0, height: 0 },
+                            shadowOpacity: glowAnim,
+                            shadowRadius: 12,
+                        },
+                    ]}
+                >
+                    <Ionicons
+                        name={isActive ? item.activeIcon : item.icon}
+                        size={24}
+                        color={isActive ? '#5D3A1A' : (isDarkMode ? '#a0a0a0' : '#888')}
+                    />
+                </Animated.View>
+            </Pressable>
+        </Link>
+    )
+}
 
 const NavBar = () => {
-    const pathname = usePathname() // Gets current page URL (e.g., "/about")
-    const router = useRouter() // Navigation tools (like clicking links on a website)
+    const pathname = usePathname()
+    const router = useRouter()
     const { isDarkMode } = useTheme()
-    const currentIndexRef = useRef(routes.indexOf(pathname)) // Use ref to always have fresh value
-    currentIndexRef.current = routes.indexOf(pathname) // Update ref on every render
+
+    // Refs for scrubbing navigation
+    const pillRef = useRef(null)
+    const navbarLayout = useRef({ x: 0, width: 0 })
+    const lastNavigatedIndex = useRef(-1)
+
+    // Measure navbar position on layout
+    const handleLayout = useCallback(() => {
+        if (pillRef.current) {
+            pillRef.current.measureInWindow((x, y, width, height) => {
+                navbarLayout.current = { x, width }
+            })
+        }
+    }, [])
 
     const panResponder = useRef(
         PanResponder.create({
@@ -19,49 +115,49 @@ const NavBar = () => {
             onMoveShouldSetPanResponder: (_, gestureState) => {
                 return Math.abs(gestureState.dx) > 15 && Math.abs(gestureState.dy) < 30
             },
-            onPanResponderRelease: (_, gestureState) => {
-                const swipeThreshold = 50
-                const currentIndex = currentIndexRef.current // Get fresh value from ref
+            onPanResponderMove: (_, gestureState) => {
+                // Calculate which zone the finger is in
+                const touchX = gestureState.moveX - navbarLayout.current.x
+                const zoneWidth = navbarLayout.current.width / routes.length
+                const newIndex = Math.floor(touchX / zoneWidth)
+                const clampedIndex = Math.max(0, Math.min(routes.length - 1, newIndex))
 
-                if (gestureState.dx > swipeThreshold && currentIndex > 0) {
-                    router.replace(routes[currentIndex - 1]) // Go back one page
-                } else if (gestureState.dx < -swipeThreshold && currentIndex < routes.length - 1) {
-                    router.replace(routes[currentIndex + 1]) // Go forward one page
+                // Navigate if we've moved to a different zone
+                if (clampedIndex !== lastNavigatedIndex.current) {
+                    lastNavigatedIndex.current = clampedIndex
+                    router.replace(routes[clampedIndex])
                 }
+            },
+            onPanResponderRelease: () => {
+                // Reset tracking when finger is lifted
+                lastNavigatedIndex.current = -1
             },
         })
     ).current
 
     const navItems = [
-        { href: '/', icon: 'home-outline', activeIcon: 'home' }, // Home page icon
-        { href: '/about', icon: 'information-circle-outline', activeIcon: 'information-circle' }, // About page icon
-        { href: '/contacts', icon: 'people-outline', activeIcon: 'people' }, // Contacts page icon
-        { href: '/settings', icon: 'settings-outline', activeIcon: 'settings' }, // Settings page icon
+        { href: '/', icon: 'home-outline', activeIcon: 'home' },
+        { href: '/about', icon: 'information-circle-outline', activeIcon: 'information-circle' },
+        { href: '/contacts', icon: 'people-outline', activeIcon: 'people' },
+        { href: '/settings', icon: 'settings-outline', activeIcon: 'settings' },
     ]
 
     return (
         <View style={styles.container}>
-            <View style={[styles.pillContainer, { backgroundColor: isDarkMode ? '#2d2d2d' : '#f5f5f5' }]} {...panResponder.panHandlers}>
-                {navItems.map((item) => {
-                    const isActive = pathname === item.href
-                    return (
-                        <Link key={item.href} href={item.href} asChild>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.iconButton,
-                                    isActive && styles.activeButton,
-                                    pressed && styles.pressed,
-                                ]}
-                            >
-                                <Ionicons
-                                    name={isActive ? item.activeIcon : item.icon}
-                                    size={24}
-                                    color={isActive ? '#5D3A1A' : (isDarkMode ? '#a0a0a0' : '#888')}
-                                />
-                            </Pressable>
-                        </Link>
-                    )
-                })}
+            <View
+                ref={pillRef}
+                onLayout={handleLayout}
+                style={[styles.pillContainer, { backgroundColor: isDarkMode ? '#2d2d2d' : '#f5f5f5' }]}
+                {...panResponder.panHandlers}
+            >
+                {navItems.map((item) => (
+                    <AnimatedNavItem
+                        key={item.href}
+                        item={item}
+                        isActive={pathname === item.href}
+                        isDarkMode={isDarkMode}
+                    />
+                ))}
             </View>
         </View>
     )
@@ -104,7 +200,7 @@ const styles = StyleSheet.create({
     },
 
     activeButton: {
-        backgroundColor: '#22c55e',
+        // No background - glow effect only
     },
 
     pressed: {

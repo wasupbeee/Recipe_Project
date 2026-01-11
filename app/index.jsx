@@ -10,7 +10,7 @@ const HomePage = () => {
 
             <Image source={Logo} style={{ width: 150, height: 150 }} />
             <Text style={[styles.title, { color: colors.text }]}>Demo App</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>In Progress!</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>In Progress!!</Text>
         </View>
     )
 }

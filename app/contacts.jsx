@@ -6,7 +6,7 @@ const contacts = () => {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <Text style={[styles.title, { color: colors.text }]}>This is the contacts  page</Text>
+            <Text style={[styles.title, { color: colors.text }]}>This is the contacts page!</Text>
         </View>
     )
 }
