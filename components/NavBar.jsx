@@ -2,13 +2,16 @@ import { useRef } from 'react' // Stores values that persist between re-renders 
 import { StyleSheet, View, Pressable, PanResponder } from 'react-native' // Building blocks for UI (like divs in web)
 import { Link, usePathname, useRouter } from 'expo-router' //Navigation tools (like clicking links on a website)
 import { Ionicons } from '@expo/vector-icons'
+import { useTheme } from '../context/ThemeContext'
 
-const routes = ['/', '/about', '/contacts'] // A simple list of all your pages in order. This tells the swipe logic which page comes before/after the current one.
+const routes = ['/', '/about', '/contacts', '/settings'] // A simple list of all your pages in order. This tells the swipe logic which page comes before/after the current one.
 
 const NavBar = () => {
     const pathname = usePathname() // Gets current page URL (e.g., "/about")
     const router = useRouter() // Navigation tools (like clicking links on a website)
-    const currentIndex = routes.indexOf(pathname) // Finds position in array (0, 1, or 2)
+    const { isDarkMode } = useTheme()
+    const currentIndexRef = useRef(routes.indexOf(pathname)) // Use ref to always have fresh value
+    currentIndexRef.current = routes.indexOf(pathname) // Update ref on every render
 
     const panResponder = useRef(
         PanResponder.create({
@@ -18,6 +21,7 @@ const NavBar = () => {
             },
             onPanResponderRelease: (_, gestureState) => {
                 const swipeThreshold = 50
+                const currentIndex = currentIndexRef.current // Get fresh value from ref
 
                 if (gestureState.dx > swipeThreshold && currentIndex > 0) {
                     router.replace(routes[currentIndex - 1]) // Go back one page
@@ -32,11 +36,12 @@ const NavBar = () => {
         { href: '/', icon: 'home-outline', activeIcon: 'home' }, // Home page icon
         { href: '/about', icon: 'information-circle-outline', activeIcon: 'information-circle' }, // About page icon
         { href: '/contacts', icon: 'people-outline', activeIcon: 'people' }, // Contacts page icon
+        { href: '/settings', icon: 'settings-outline', activeIcon: 'settings' }, // Settings page icon
     ]
 
     return (
         <View style={styles.container}>
-            <View style={styles.pillContainer} {...panResponder.panHandlers}>
+            <View style={[styles.pillContainer, { backgroundColor: isDarkMode ? '#2d2d2d' : '#f5f5f5' }]} {...panResponder.panHandlers}>
                 {navItems.map((item) => {
                     const isActive = pathname === item.href
                     return (
@@ -51,7 +56,7 @@ const NavBar = () => {
                                 <Ionicons
                                     name={isActive ? item.activeIcon : item.icon}
                                     size={24}
-                                    color={isActive ? '#fff' : '#888'}
+                                    color={isActive ? '#5D3A1A' : (isDarkMode ? '#a0a0a0' : '#888')}
                                 />
                             </Pressable>
                         </Link>

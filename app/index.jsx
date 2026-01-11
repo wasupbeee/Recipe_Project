@@ -1,16 +1,16 @@
 import { StyleSheet, Text, View, Image } from 'react-native'
 import Logo from '../assets/LogoVilla.png'
-import NavBar from '../components/NavBar'
+import { useTheme } from '../context/ThemeContext'
 
 const HomePage = () => {
+    const { colors } = useTheme()
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
 
             <Image source={Logo} style={{ width: 150, height: 150 }} />
-            <Text style={styles.title}>Demo App</Text>
-            <Text style={styles.subtitle}>In Progress!!</Text>
-
-            <NavBar />
+            <Text style={[styles.title, { color: colors.text }]}>Demo App</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>In Progress!</Text>
         </View>
     )
 }

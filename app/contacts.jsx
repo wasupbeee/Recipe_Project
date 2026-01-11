@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
-import NavBar from '../components/NavBar'
+import { useTheme } from '../context/ThemeContext'
 
 const contacts = () => {
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>This is the contacts  page</Text>
+    const { colors } = useTheme()
 
-            <NavBar />
+    return (
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <Text style={[styles.title, { color: colors.text }]}>This is the contacts  page</Text>
         </View>
     )
 }
